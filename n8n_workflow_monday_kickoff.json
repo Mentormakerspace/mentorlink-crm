@@ -1,0 +1,393 @@
+{
+  "name": "CRM: Monday.com Project Kickoff",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "webhook-monday-kickoff",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ],
+      "webhookId": "placeholder-webhook-id-monday",
+      "notes": "Triggered by the CRM Backend API when a deal deposit is marked as paid. Expects JSON body with { deal: {...}, client: {...} }"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.client ? \"http://localhost:5000/api/clients/\" + $json.body.client.id : \"http://localhost:5000/api/clients/\" + $json.body.deal.client_id }}",
+        "options": {}
+      },
+      "name": "Fetch Full Client Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ],
+      "notes": "Fetches complete client details from the CRM API using the client_id provided in the webhook payload."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node[\"Fetch Full Client Details\"].json.client.monday_board_id }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Client Has Monday Board?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ],
+      "notes": "Checks if the client record fetched from the CRM already has a Monday.com board ID associated with it."
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "nodeCredentialType": "mondayApi",
+        "resource": "board",
+        "operation": "create",
+        "name": "={{ $node[\"Fetch Full Client Details\"].json.client.company }} Project",
+        "boardKind": "public",
+        "options": {}
+      },
+      "name": "Create Monday Board",
+      "type": "n8n-nodes-base.monday",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        200
+      ],
+      "credentials": {
+        "mondayApi": {
+          "id": "PLACEHOLDER_MONDAY_CREDENTIAL_ID",
+          "name": "Monday API Credentials"
+        }
+      },
+      "notes": "If the client doesn't have a board ID, create a new public board on Monday.com named after the client's company. Requires Monday API credentials configured in n8n."
+    },
+    {
+      "parameters": {
+        "url": "={{ \"http://localhost:5000/api/clients/\" + $node[\"Fetch Full Client Details\"].json.client.id }}",
+        "method": "PUT",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "monday_board_id",
+              "value": "={{ $node[\"Create Monday Board\"].json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Client in CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1250,
+        200
+      ],
+      "notes": "Updates the client record in the CRM backend API with the newly created Monday.com board ID."
+    },
+    {
+      "parameters": {
+        "conditions": {},
+        "options": {}
+      },
+      "name": "Merge Board IDs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1250,
+        400
+      ],
+      "notes": "Merges the execution paths. Ensures we have the correct Monday board ID, whether it was pre-existing or just created."
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "nodeCredentialType": "mondayApi",
+        "resource": "item",
+        "operation": "create",
+        "boardId": "={{ $json.boardId }}",
+        "itemName": "Kickoff - Deal {{ $json.dealId }}",
+        "options": {}
+      },
+      "name": "Create Monday Item (Kickoff)",
+      "type": "n8n-nodes-base.monday",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        400
+      ],
+      "credentials": {
+        "mondayApi": {
+          "id": "PLACEHOLDER_MONDAY_CREDENTIAL_ID",
+          "name": "Monday API Credentials"
+        }
+      },
+      "notes": "Creates a new item on the client's Monday.com board to signify the project kickoff. Requires Monday API credentials."
+    },
+    {
+      "parameters": {
+        "nodeCredentialType": "smtp",
+        "from": "noreply@example.com",
+        "to": "={{ $json.clientEmail }}",
+        "subject": "Welcome to your project with [Your Agency Name]!",
+        "html": "<h2>Welcome, {{ $json.clientName }}!</h2><p>We're excited to kick off your project (Deal ID: {{ $json.dealId }}).</p><p>We'll be managing tasks and updates via Monday.com.</p><p>You can view the board here: [Link to Monday Board - requires constructing URL if possible, e.g., https://yourdomain.monday.com/boards/{{ $json.boardId }} ]</p><p>We'll be in touch soon with the next steps.</p><p>Best regards,<br/>[Your Agency Name]</p>",
+        "options": {}
+      },
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.sendEmail",
+      "typeVersion": 2.1,
+      "position": [
+        1650,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "PLACEHOLDER_SMTP_CREDENTIAL_ID",
+          "name": "SMTP Credentials"
+        }
+      },
+      "notes": "Sends a welcome email to the client. Requires SMTP credentials configured in n8n. Customize sender, agency name, and potentially the Monday board link."
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "nodeCredentialType": "slackOAuth2Api",
+        "channel": "#sales",
+        "text": "Deposit received for Deal {{ $json.dealId }} ({{ $json.clientCompany }}). Project kicked off on Monday.com board ID: {{ $json.boardId }}",
+        "options": {}
+      },
+      "name": "Notify #sales on Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [
+        1650,
+        500
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACK_CREDENTIAL_ID",
+          "name": "Slack Credentials"
+        }
+      },
+      "notes": "Sends a notification to the #sales channel on Slack. Requires Slack credentials configured in n8n."
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "expressions": {
+          "expressions": [
+            {
+              "name": "boardId",
+              "value": "={{ $node[\"Client Has Monday Board?\"].json.client.monday_board_id }}"
+            },
+            {
+              "name": "dealId",
+              "value": "={{ $node[\"Webhook Trigger\"].json.body.deal.id }}"
+            },
+            {
+              "name": "clientEmail",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.email }}"
+            },
+            {
+              "name": "clientName",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.contact_name }}"
+            },
+            {
+              "name": "clientCompany",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.company }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Data (Existing Board)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2.1,
+      "position": [
+        1050,
+        400
+      ],
+      "notes": "Prepares data needed for subsequent steps when the Monday board already exists."
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "expressions": {
+          "expressions": [
+            {
+              "name": "boardId",
+              "value": "={{ $node[\"Create Monday Board\"].json.id }}"
+            },
+            {
+              "name": "dealId",
+              "value": "={{ $node[\"Webhook Trigger\"].json.body.deal.id }}"
+            },
+            {
+              "name": "clientEmail",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.email }}"
+            },
+            {
+              "name": "clientName",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.contact_name }}"
+            },
+            {
+              "name": "clientCompany",
+              "value": "={{ $node[\"Fetch Full Client Details\"].json.client.company }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Data (New Board)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2.1,
+      "position": [
+        1050,
+        0
+      ],
+      "notes": "Prepares data needed for subsequent steps after creating a new Monday board."
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Full Client Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Full Client Details": {
+      "main": [
+        [
+          {
+            "node": "Client Has Monday Board?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Has Monday Board?": {
+      "main": [
+        [
+          {
+            "node": "Create Monday Board",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Data (Existing Board)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Monday Board": {
+      "main": [
+        [
+          {
+            "node": "Update Client in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Client in CRM": {
+      "main": [
+        [
+          {
+            "node": "Set Data (New Board)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Board IDs": {
+      "main": [
+        [
+          {
+            "node": "Create Monday Item (Kickoff)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Monday Item (Kickoff)": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify #sales on Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Data (Existing Board)": {
+      "main": [
+        [
+          {
+            "node": "Merge Board IDs",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set Data (New Board)": {
+      "main": [
+        [
+          {
+            "node": "Merge Board IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {}
+}

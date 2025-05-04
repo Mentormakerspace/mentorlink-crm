@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: crm_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${DB_NAME:-crm_db}
+      POSTGRES_USER: ${DB_USERNAME:-crm_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-crm_password}
+    ports:
+      - "5432:5432"
+    networks:
+      - crm_network
+
+  backend:
+    build:
+      context: ./crm_backend
+      dockerfile: Dockerfile # Assuming a Dockerfile exists in crm_backend
+    container_name: crm_backend
+    depends_on:
+      - db
+    env_file:
+      - ./crm_backend/.env # Load environment variables from .env file
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./crm_backend:/app # Mount the backend code
+    networks:
+      - crm_network
+    command: ["flask", "run", "--host=0.0.0.0"]
+
+  frontend:
+    build:
+      context: ./crm_frontend
+      dockerfile: Dockerfile # Assuming a Dockerfile exists in crm_frontend
+    container_name: crm_frontend
+    depends_on:
+      - backend
+    env_file:
+      - ./crm_frontend/.env.local # Load environment variables from .env.local
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./crm_frontend:/app # Mount the frontend code
+      - /app/node_modules # Don't mount node_modules from host
+      - /app/.next # Don't mount .next from host
+    networks:
+      - crm_network
+    command: ["pnpm", "dev"]
+
+networks:
+  crm_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+

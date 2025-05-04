@@ -1,0 +1,317 @@
+{
+  "name": "CRM: Weekly Report Generator (Manual Trigger)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "webhook-weekly-report",
+        "options": {}
+      },
+      "name": "Manual/Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ],
+      "webhookId": "placeholder-webhook-id-report",
+      "notes": "Trigger this workflow manually via the n8n UI or externally via its webhook URL. Automatic scheduling is not supported in this environment."
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/stats",
+        "options": {}
+      },
+      "name": "Fetch CRM Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        200
+      ],
+      "notes": "Fetches key business metrics from the CRM backend API. Assumes a 	/api/stats	 endpoint exists that returns JSON like: { totalPipelineValue, totalContractedValue, currentReceivables, averageDealSize, averageLeadTimePerStage, averageTimeInStage }"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/action_items?completed=false",
+        "options": {}
+      },
+      "name": "Fetch Outstanding Action Items",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        400
+      ],
+      "notes": "Fetches action items from the CRM backend API that are not yet completed. Assumes 	/api/action_items?completed=false	 endpoint exists."
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/users?role=Owner,Admin,SalesRep",
+        "options": {}
+      },
+      "name": "Fetch Report Recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        850,
+        100
+      ],
+      "notes": "Fetches user details (specifically emails) for Owners, Admins, and SalesReps to determine report recipients. Assumes 	/api/users?role=...	 endpoint exists."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "expressions": {
+          "expressions": [
+            {
+              "name": "ownerAdminEmails",
+              "value": "={{ $items().map(item => item.json.role !== \"SalesRep\" ? item.json.email : null).filter(email => email !== null).join(\",\") }}"
+            },
+            {
+              "name": "salesRepEmails",
+              "value": "={{ $items().map(item => item.json.role === \"SalesRep\" ? item.json.email : null).filter(email => email !== null).join(\",\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prepare Email Lists",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2.1,
+      "position": [
+        1050,
+        100
+      ],
+      "notes": "Processes the fetched user list to create comma-separated strings of email addresses for the \"To\" (Owner/Admin) and \"Cc\" (SalesRep) fields."
+    },
+    {
+      "parameters": {
+        "fileName": "crm_report_data.csv",
+        "fileFormat": "csv",
+        "options": {}
+      },
+      "name": "Generate CSV Data",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 1.1,
+      "position": [
+        1050,
+        400
+      ],
+      "notes": "Generates a CSV file containing the outstanding action items data."
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "expressions": {
+          "expressions": [
+            {
+              "name": "reportDate",
+              "value": "={{ new Date().toLocaleDateString(\"en-US\") }}"
+            },
+            {
+              "name": "stats",
+              "value": "={{ $node[\"Fetch CRM Stats\"].json }}"
+            },
+            {
+              "name": "actionItems",
+              "value": "={{ $node[\"Fetch Outstanding Action Items\"].json.action_items }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prepare Report Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2.1,
+      "position": [
+        850,
+        300
+      ],
+      "notes": "Consolidates the fetched stats and action items data for easier use in the report generation steps."
+    },
+    {
+      "parameters": {
+        "nodeCredentialType": "smtp",
+        "from": "noreply@example.com",
+        "to": "={{ $node[\"Prepare Email Lists\"].json.ownerAdminEmails }}",
+        "cc": "={{ $node[\"Prepare Email Lists\"].json.salesRepEmails }}",
+        "subject": "Weekly CRM Report - {{ $json.reportDate }}",
+        "html": "={{ 
+`<h2>Weekly CRM Summary - ${$json.reportDate}</h2>
+<h3>Key Metrics:</h3>
+<ul>
+  <li>Total Pipeline Value: $${$json.stats.totalPipelineValue?.toLocaleString() || \"N/A\"}</li>
+  <li>Total Contracted Value: $${$json.stats.totalContractedValue?.toLocaleString() || \"N/A\"}</li>
+  <li>Current Receivables: $${$json.stats.currentReceivables?.toLocaleString() || \"N/A\"}</li>
+  <li>Average Deal Size: $${$json.stats.averageDealSize?.toLocaleString() || \"N/A\"}</li>
+  <li>Avg Lead Time/Stage: ${$json.stats.averageLeadTimePerStage || \"N/A\"}</li>
+  <li>Avg Time In Stage: ${$json.stats.averageTimeInStage || \"N/A\"}</li>
+</ul>
+<h3>Outstanding Action Items (${$json.actionItems?.length || 0}):</h3>
+` + 
+($json.actionItems && $json.actionItems.length > 0 ? 
+  `<ul>` + 
+  $json.actionItems.map(item => 
+    `<li><b>Deal ${item.deal_id}:</b> ${item.description} (Owner: ${item.owner_name || \"ID: \"+item.owner_id}, Due: ${item.due_date})</li>`
+  ).join(\"\") + 
+  `</ul>` : 
+  `<p>No outstanding action items.</p>`)
+}}",
+        "attachments": "={{ $node[\"Generate CSV Data\"].json.fileName }}",
+        "options": {}
+      },
+      "name": "Send Report Email",
+      "type": "n8n-nodes-base.sendEmail",
+      "typeVersion": 2.1,
+      "position": [
+        1250,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "PLACEHOLDER_SMTP_CREDENTIAL_ID",
+          "name": "SMTP Credentials"
+        }
+      },
+      "notes": "Sends the formatted HTML report with the CSV data attached via email. Requires SMTP credentials configured in n8n. Customize sender email address."
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "nodeCredentialType": "slackOAuth2Api",
+        "channel": "#reports",
+        "text": "Weekly CRM Report for {{ $json.reportDate }} is ready. Sent via email. Pipeline: $${$json.stats.totalPipelineValue?.toLocaleString() || \"N/A\"}, Contracted: $${$json.stats.totalContractedValue?.toLocaleString() || \"N/A\"}, Receivables: $${$json.stats.currentReceivables?.toLocaleString() || \"N/A\"}. Outstanding Actions: ${$json.actionItems?.length || 0}.",
+        "options": {}
+      },
+      "name": "Notify #reports on Slack (Optional)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACK_CREDENTIAL_ID",
+          "name": "Slack Credentials"
+        }
+      },
+      "notes": "(Optional) Sends a summary notification to a Slack channel. Requires Slack credentials configured in n8n. Adjust channel name as needed."
+    }
+  ],
+  "connections": {
+    "Manual/Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch CRM Stats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Outstanding Action Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Report Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch CRM Stats": {
+      "main": [
+        [
+          {
+            "node": "Prepare Report Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Outstanding Action Items": {
+      "main": [
+        [
+          {
+            "node": "Generate CSV Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Report Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Report Recipients": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Lists": {
+      "main": [
+        [
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate CSV Data": {
+      "main": [
+        [
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Report Data": {
+      "main": [
+        [
+          {
+            "node": "Send Report Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify #reports on Slack (Optional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {}
+}
