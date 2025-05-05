@@ -59,3 +59,4 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg 
+!crm_frontend/src/lib/
