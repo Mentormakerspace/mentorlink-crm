@@ -12,6 +12,10 @@ export interface Deal {
   amount: number;
   created_at: string;
   updated_at: string;
+  sales_rep_id: number;     
+  stage: string;             
+  estimated_value: number;   
+  probability: number;      
 }
 
 export interface Client {
@@ -138,4 +142,3 @@ export const login = async (...args: any[]) => { /* TODO: implement or replace w
 
 // --- Default Export for Compatibility ---
 export default apiClient;
-
