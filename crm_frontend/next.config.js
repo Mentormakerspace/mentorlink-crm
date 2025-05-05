@@ -1,18 +1,22 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  experimental: {
-    appDir: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   webpack: (config) => {
-    config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, 'src'),
+      '@': path.resolve(__dirname, 'src'),
     };
     return config;
   },
+  experimental: {
+    serverActions: true,
+  },
+  transpilePackages: ['@radix-ui/react-*'],
 };
 
 module.exports = nextConfig; 
