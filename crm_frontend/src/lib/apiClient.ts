@@ -124,3 +124,18 @@ class ApiClient {
 // Export a singleton instance
 export const apiClient = new ApiClient();
 
+// --- Legacy/Named Exports for Compatibility ---
+
+export const fetchDeals = () => apiClient.getDeals();
+export const fetchClients = () => apiClient.getClients();
+export const fetchUsers = async () => { /* TODO: implement or replace with real logic */ return []; };
+export const createDeal = (deal: Partial<Deal>) => apiClient.createDeal(deal);
+export const updateDeal = (id: number, deal: Partial<Deal>) => apiClient.updateDeal(id, deal);
+export const fetchStageHistory = async (dealId: number) => { /* TODO: implement or replace with real logic */ return []; };
+export const fetchPaymentSchedules = async (dealId: number) => { /* TODO: implement or replace with real logic */ return []; };
+export const createPaymentSchedule = async (...args: any[]) => { /* TODO: implement or replace with real logic */ return {}; };
+export const login = async (...args: any[]) => { /* TODO: implement or replace with real logic */ return {}; };
+
+// --- Default Export for Compatibility ---
+export default apiClient;
+
