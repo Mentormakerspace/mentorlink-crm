@@ -5,5 +5,4 @@
   "buildCommand": "pnpm install --no-frozen-lockfile && pnpm run build",
   "outputDirectory": ".next",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "rootDirectory": "crm_frontend"
 } 
