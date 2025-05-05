@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { fetchDeals, updateDeal } from '@/lib/apiClient'; // Import API functions
-import { Deal } from '@/types/crm'; // Import Deal type
-import DealCard from './DealCard'; // Assuming DealCard component exists
-import KanbanColumn from './KanbanColumn'; // Assuming KanbanColumn component exists
+import { fetchDeals, updateDeal } from '../lib/apiClient';
+import { Deal } from '../types/crm';
+import DealCard from './DealCard';
+import KanbanColumn from './KanbanColumn';
 
 // Define stages - In a real app, these might be fetched or configurable
 const STAGES = ['Lead', 'Prospect', 'Proposal', 'Contract', 'Deposit', 'Staged Payments', 'Project Delivery', 'Final Payment'];

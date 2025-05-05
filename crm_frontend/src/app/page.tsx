@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react'; // Import useState and useEffect
-import KanbanBoard from '@/components/KanbanBoard';
-import StatsDashboard from '@/components/StatsDashboard';
-import Login from '@/components/Login';
-import CreateDealModal from '@/components/CreateDealModal'; // Import the modal
-import CreateClientModal from '@/components/CreateClientModal'; // Import the modal
-import PaymentsModal from '@/components/PaymentsModal';
-import { useAuth } from '@/hooks/useAuth';
-import { Deal } from '@/types/crm'; // Import Deal type
-import { fetchDeals, fetchStageHistory, fetchPaymentSchedules } from '@/lib/apiClient';
+import KanbanBoard from '../components/KanbanBoard';
+import StatsDashboard from '../components/StatsDashboard';
+import Login from '../components/Login';
+import CreateDealModal from '../components/CreateDealModal';
+import CreateClientModal from '../components/CreateClientModal';
+import PaymentsModal from '../components/PaymentsModal';
+import { useAuth } from '../hooks/useAuth';
+import { Deal } from '../types/crm'; // Import Deal type
+import { fetchDeals, fetchStageHistory, fetchPaymentSchedules } from '../lib/apiClient';
 
 export default function Home() {
   const { user, logout } = useAuth();

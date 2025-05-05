@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createDeal, fetchClients, fetchUsers } from '@/lib/apiClient';
-import { Client, User } from '@/types/crm';
+import { createDeal, fetchClients, fetchUsers } from '../lib/apiClient';
+import { Client, User } from '../types/crm';
 
 interface CreateDealModalProps {
   isOpen: boolean;
