@@ -101,12 +101,6 @@ dependencies:
   '@supabase/supabase-js':
     specifier: ^2.49.4
     version: 2.49.4
-  '@types/node':
-    specifier: ^20.17.32
-    version: 20.17.32
-  '@types/react':
-    specifier: ^18.3.20
-    version: 18.3.20
   axios:
     specifier: ^1.9.0
     version: 1.9.0
@@ -167,9 +161,6 @@ dependencies:
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.4.17)
-  typescript:
-    specifier: ^5.8.3
-    version: 5.8.3
   vaul:
     specifier: ^1.1.2
     version: 1.1.2(@types/react-dom@18.3.7)(@types/react@18.3.20)(react-dom@18.3.1)(react@18.3.1)
@@ -187,6 +178,12 @@ devDependencies:
   '@opennextjs/cloudflare':
     specifier: ^0.3.8
     version: 0.3.10(wrangler@3.114.8)
+  '@types/node':
+    specifier: ^20.17.32
+    version: 20.17.32
+  '@types/react':
+    specifier: ^18.3.20
+    version: 18.3.20
   '@types/react-dom':
     specifier: ^18
     version: 18.3.7(@types/react@18.3.20)
@@ -208,6 +205,9 @@ devDependencies:
   turbo:
     specifier: ^2.3.3
     version: 2.5.2
+  typescript:
+    specifier: ^5.8.3
+    version: 5.8.3
   wrangler:
     specifier: ^3.102.0
     version: 3.114.8(@cloudflare/workers-types@4.20250505.0)
@@ -5114,7 +5114,6 @@ packages:
     resolution: {integrity: sha512-zeMXFn8zQ+UkjK4ws0RiOC9EWByyW1CcVmLe+2rQocXRsGEDxUCwPEIVgpsGcLHS/P8JkT0oa3839BRABS0oPw==}
     dependencies:
       undici-types: 6.19.8
-    dev: false
 
   /@types/phoenix@1.6.6:
     resolution: {integrity: sha512-PIzZZlEppgrpoT2QgbnDU+MMzuR6BbCjllj0bM70lWoejMeNJAxCchxnv7J3XFkI8MpygtRpzXrIlmWUBclP5A==}
@@ -9189,6 +9188,7 @@ packages:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
+    dev: true
 
   /ufo@1.6.1:
     resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
@@ -9206,7 +9206,6 @@ packages:
 
   /undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
-    dev: false
 
   /undici@5.29.0:
     resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
