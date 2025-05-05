@@ -9,7 +9,7 @@ const nextConfig = {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': '/src',
+      '@': './src',
     };
     return config;
   },
