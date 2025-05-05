@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "cd crm_frontend && pnpm install --no-frozen-lockfile && pnpm run build",
+  "outputDirectory": "crm_frontend/.next",
+  "installCommand": "cd crm_frontend && pnpm install --no-frozen-lockfile",
+  "framework": "nextjs"
+} 
