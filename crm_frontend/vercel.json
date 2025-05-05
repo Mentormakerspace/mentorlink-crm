@@ -4,5 +4,5 @@
   "cleanUrls": true,
   "buildCommand": "pnpm install --no-frozen-lockfile && pnpm run build",
   "outputDirectory": ".next",
-  "installCommand": "pnpm install --no-frozen-lockfile",
+  "installCommand": "pnpm install --no-frozen-lockfile"
 } 
