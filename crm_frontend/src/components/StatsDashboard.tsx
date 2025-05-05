@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchDeals, fetchStageHistory } from '@/lib/apiClient';
-import { Deal, StageHistory } from '@/types/crm';
+import { fetchDeals, fetchStageHistory } from '../lib/apiClient';
+import { Deal, StageHistory } from '../types/crm';
 
 const STAGES = [
   'Lead',

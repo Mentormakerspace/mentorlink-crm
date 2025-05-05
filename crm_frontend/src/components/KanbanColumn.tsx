@@ -1,7 +1,7 @@
 import React from 'react';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
-import { Deal } from '@/types/crm';
+import { Deal } from '../types/crm';
 import DealCard from './DealCard';
 
 interface KanbanColumnProps {

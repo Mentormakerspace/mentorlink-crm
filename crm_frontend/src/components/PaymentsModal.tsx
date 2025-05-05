@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createPaymentSchedule } from '@/lib/apiClient';
+import { createPaymentSchedule } from '../lib/apiClient';
 
 interface PaymentsModalProps {
   dealId: number;
