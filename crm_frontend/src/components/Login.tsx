@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import apiClient from '../lib/apiClient';
+import { createUser } from '../lib/apiClient';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
     }
     setSignupLoading(true);
     try {
-      await apiClient.post('/users', {
+      await createUser({
         name: signupName,
         email: signupEmail,
         password: signupPassword,

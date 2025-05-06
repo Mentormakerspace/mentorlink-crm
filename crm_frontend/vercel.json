@@ -2,7 +2,7 @@
   "version": 2,
   "framework": "nextjs",
   "cleanUrls": true,
-  "buildCommand": "pnpm run build",
+  "buildCommand": "pnpm install typescript@5.8.3 @types/react@18.3.20 @types/node@20.17.32 @types/react-dom@18.3.7 --no-frozen-lockfile && pnpm run build",
   "outputDirectory": ".next",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "env": {
@@ -12,7 +12,10 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "node build.js"
+      }
     }
   ]
 } 

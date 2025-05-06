@@ -63,7 +63,7 @@ const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClose, onDe
 
     try {
       const result = await createDeal(dealData);
-      onDealCreated(result.deal); // Pass the newly created deal back
+      onDealCreated(result); // Pass the newly created deal back
       handleClose(); // Close modal on success
     } catch (err: any) {
       console.error('Failed to create deal:', err);

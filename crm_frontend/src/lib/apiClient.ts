@@ -1,6 +1,7 @@
    // Trigger redeploy: test comment
 
 import axios from 'axios';
+import { StageHistory, PaymentSchedule, Client as CrmClient, User } from '../types/crm';
 
 // Define types for our data structures
 export interface Deal {
@@ -14,19 +15,17 @@ export interface Deal {
   updated_at: string;
   sales_rep_id: number;     
   stage: string;             
-  estimated_value: number;   
+  estimated_value: string;   
   probability: number;      
+  expected_close?: string;
+  won_on?: string;
+  lost_on?: string;
+  client_company?: string;
+  sales_rep_name?: string;
 }
 
-export interface Client {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  created_at: string;
-  updated_at: string;
-}
+// Use the Client type from crm.ts
+export type Client = CrmClient;
 
 export interface Payment {
   id: number;
@@ -123,6 +122,18 @@ class ApiClient {
     const response = await api.get('/stats/payments');
     return response.data;
   }
+
+  // Users
+  async createUser(user: { name: string; email: string; password: string; role: string }): Promise<User> {
+    const response = await api.post('/users', user);
+    return response.data;
+  }
+
+  // Auth
+  async login(email: string, password: string): Promise<{ token: string; user: User }> {
+    const response = await api.post('/auth/login', { email, password });
+    return response.data;
+  }
 }
 
 // Export a singleton instance
@@ -135,10 +146,11 @@ export const fetchClients = () => apiClient.getClients();
 export const fetchUsers = async () => { /* TODO: implement or replace with real logic */ return []; };
 export const createDeal = (deal: Partial<Deal>) => apiClient.createDeal(deal);
 export const updateDeal = (id: number, deal: Partial<Deal>) => apiClient.updateDeal(id, deal);
-export const fetchStageHistory = async (dealId: number) => { /* TODO: implement or replace with real logic */ return []; };
-export const fetchPaymentSchedules = async (dealId: number) => { /* TODO: implement or replace with real logic */ return []; };
+export const fetchStageHistory = async (dealId: number): Promise<StageHistory[]> => { /* TODO: implement or replace with real logic */ return []; };
+export const fetchPaymentSchedules = async (dealId: number): Promise<PaymentSchedule[]> => { /* TODO: implement or replace with real logic */ return []; };
 export const createPaymentSchedule = async (...args: any[]) => { /* TODO: implement or replace with real logic */ return {}; };
-export const login = async (...args: any[]) => { /* TODO: implement or replace with real logic */ return {}; };
+export const login = (email: string, password: string) => apiClient.login(email, password);
+export const createUser = (user: { name: string; email: string; password: string; role: string }) => apiClient.createUser(user);
 
 // --- Default Export for Compatibility ---
 export default apiClient;

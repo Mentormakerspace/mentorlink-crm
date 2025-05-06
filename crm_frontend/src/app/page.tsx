@@ -8,7 +8,7 @@ import CreateDealModal from '@/components/CreateDealModal';
 import CreateClientModal from '@/components/CreateClientModal';
 import PaymentsModal from '@/components/PaymentsModal';
 import { useAuth } from '@/hooks/useAuth';
-import { Deal } from '@/types/crm'; // Import Deal type
+import { Deal, StageHistory, PaymentSchedule } from '@/types/crm'; // Import Deal type
 import { fetchDeals, fetchStageHistory, fetchPaymentSchedules } from '@/lib/apiClient';
 
 export default function Home() {
@@ -44,7 +44,7 @@ export default function Home() {
             let daysInStage = 0;
             try {
               const history = await fetchStageHistory(deal.id);
-              const currentStage = history.find((h: any) => !h.exited_at);
+              const currentStage = history.find((h: StageHistory) => !h.exited_at);
               if (currentStage) {
                 const entered = new Date(currentStage.entered_at);
                 daysInStage = Math.max(1, Math.round((today.getTime() - entered.getTime()) / (1000 * 60 * 60 * 24)));
@@ -58,8 +58,8 @@ export default function Home() {
             try {
               const payments = await fetchPaymentSchedules(deal.id);
               const totalPaid = payments
-                .filter((p: any) => p.status === 'paid')
-                .reduce((sum: number, p: any) => sum + parseFloat(p.amount_due), 0);
+                .filter((p: PaymentSchedule) => p.status === 'paid')
+                .reduce((sum: number, p: PaymentSchedule) => sum + parseFloat(p.amount_due), 0);
               const outstanding = parseFloat(deal.estimated_value) - totalPaid;
               paymentsObj[deal.id] = { totalPaid, outstanding, payments };
             } catch (e) {
