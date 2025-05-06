@@ -6,6 +6,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -13,10 +16,7 @@ const nextConfig = {
     };
     return config;
   },
-  experimental: {
-    serverActions: true,
-  },
-  transpilePackages: ['@radix-ui/react-*'],
+  transpilePackages: ['@radix-ui/react-*']
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

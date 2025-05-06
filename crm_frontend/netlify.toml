@@ -1,0 +1,11 @@
+[build]
+  command = "pnpm install && pnpm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+  NODE_VERSION = "18"
+  PNPM_VERSION = "8.15.4"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs" 
