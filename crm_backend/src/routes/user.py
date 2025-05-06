@@ -5,7 +5,7 @@ import jwt
 import datetime
 import traceback
 
-user_bp = Blueprint("user_bp", __name__)
+user_bp = Blueprint("user_bp", __name__, strict_slashes=False)
 
 # Note: User creation might be handled differently (e.g., admin only, signup flow)
 # This is a basic CRUD example.
@@ -147,6 +147,45 @@ def login():
         return jsonify({'token': token, 'user': user_data}), 200
     except Exception as e:
         print("[EXCEPTION] Exception occurred during login:", e)
+        traceback.print_exc()
+        return jsonify({'message': 'Internal server error', 'error': str(e)}), 500
+
+@user_bp.route('/auth/login', methods=['POST'])
+def auth_login():
+    import traceback
+    try:
+        print("[DEBUG] Auth Login request headers:", dict(request.headers))
+        print("[DEBUG] Auth Login raw data:", request.data)
+        data = request.get_json()
+        print("[DEBUG] Auth Login parsed JSON:", data)
+        if not data or not data.get('email') or not data.get('password'):
+            print("[ERROR] Missing email or password in auth login.")
+            return jsonify({'message': 'Missing email or password'}), 400
+
+        user = User.query.filter_by(email=data['email']).first()
+        if not user or not check_password_hash(user.password_hash, data['password']):
+            print("[ERROR] Invalid email or password for:", data.get('email'))
+            return jsonify({'message': 'Invalid email or password'}), 401
+
+        # Generate JWT
+        payload = {
+            'user_id': user.id,
+            'email': user.email,
+            'role': user.role,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }
+        token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+        user_data = {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'role': user.role
+        }
+        print(f"[INFO] User logged in (auth): {user_data}")
+        return jsonify({'token': token, 'user': user_data}), 200
+    except Exception as e:
+        print("[EXCEPTION] Exception occurred during auth login:", e)
         traceback.print_exc()
         return jsonify({'message': 'Internal server error', 'error': str(e)}), 500
 
