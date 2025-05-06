@@ -7,9 +7,15 @@ from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS # Import CORS
 from src.models import db
 
+from flask_cors import CORS
+
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT') # Change this in production!
-CORS(app, supports_credentials=True)  # TEMP: Allow all origins for testing
+
+CORS(app, supports_credentials=True, origins=[
+    "https://mentorlinkai.com",
+    "http://localhost:3000"  # (optional, for local dev)
+])
 
 # Database configuration using SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
