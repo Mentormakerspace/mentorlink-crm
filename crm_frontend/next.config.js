@@ -19,4 +19,4 @@ const nextConfig = {
   transpilePackages: ['@radix-ui/react-*']
 };
 
-module.exports = nextConfig;
+module.exports = {};
