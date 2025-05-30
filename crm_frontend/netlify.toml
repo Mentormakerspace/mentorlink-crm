@@ -1,6 +1,7 @@
-   [build]
-     command = "pnpm install --no-frozen-lockfile && pnpm run build"
-     publish = ".next"
+HEAD
+[build]
+  command = "cd crm_frontend && pnpm install && pnpm run build"
+  publish = "crm_frontend/.next""
 
    [build.environment]
      NEXT_TELEMETRY_DISABLED = "1"
@@ -9,3 +10,61 @@
 
    [[plugins]]
      package = "@netlify/plugin-nextjs"
+[build]
+command = "pnpm install --no-frozen-lockfile && pnpm run build"
+publish = "crm_frontend/.next"
+
+[build.environment]
+NEXT_TELEMETRY_DISABLED = "1"
+NODE_VERSION = "18"
+PNPM_VERSION = "8.15.4"
+
+[[plugins]]
+package = "@netlify/plugin-nextjs"
+
+[[headers]]
+for = "/_next/static/*"
+  [headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+from = "/_next/image"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[[redirects]]
+from = "/_ipx/*"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/api/:splat"
+status = 200
+
+[functions]
+  directory = "netlify/functions"
+  [functions.environment]
+    PYTHON_VERSION = "3.9"
+
+[context]
+  [context.production]
+    [[context.production.headers]]
+    for = "/_next/static/*"
+      [context.production.headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
+
+  [context."fix/vercel-deploy"]
+    [[context."fix/vercel-deploy".headers]]
+    for = "/_next/static/*"
+      [context."fix/vercel-deploy".headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
+backend-deploy

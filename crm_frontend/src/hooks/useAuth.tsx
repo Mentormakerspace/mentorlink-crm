@@ -13,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -43,15 +43,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('jwt', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
-    } finally {
       setLoading(false);
+      return true;
+    } catch (error: any) {
+      console.error('Login failed:', error.response?.data || error.message);
+      setLoading(false);
+      throw error;
     }
   };
 
   const logout = () => {
+    // Clear auth data
     localStorage.removeItem('jwt');
     localStorage.removeItem('user');
     setUser(null);
+    // Force a hard navigation to the login page
+    window.location.href = '/login';
   };
 
   const value = {
@@ -75,4 +82,3 @@ export function useAuth() {
   }
   return context;
 }
-
