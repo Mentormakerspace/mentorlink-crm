@@ -9,3 +9,15 @@
 
    [[plugins]]
      package = "@netlify/plugin-nextjs"
+
+[build]
+  command = "cd crm_frontend && pnpm install && pnpm run build"
+  publish = "crm_frontend/.next"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[functions]
+  directory = "netlify/functions"
