@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from src.models import db, Deal
 from src.models import Client, User, StageHistory
+from sqlalchemy.orm import joinedload
 import datetime
 import jwt
 from functools import wraps
@@ -92,19 +93,19 @@ def create_deal():
 def get_deals(user):
     # Only Admins and Owners see all deals; SalesReps see only their own
     if user['role'] in ['Admin', 'Owner']:
-        deals = Deal.query.order_by(Deal.created_at.desc()).all()
+        deals = Deal.query.options(joinedload(Deal.client), joinedload(Deal.sales_rep)).order_by(Deal.created_at.desc()).all()
     else:
-        deals = Deal.query.filter_by(sales_rep_id=user['user_id']).order_by(Deal.created_at.desc()).all()
+        deals = Deal.query.options(joinedload(Deal.client), joinedload(Deal.sales_rep)).filter_by(sales_rep_id=user['user_id']).order_by(Deal.created_at.desc()).all()
     return jsonify({"deals": [serialize_deal(deal) for deal in deals]})
 
 @deal_bp.route("/deals/<int:deal_id>", methods=["GET"])
 def get_deal(deal_id):
-    deal = Deal.query.get_or_404(deal_id)
+    deal = Deal.query.options(joinedload(Deal.client), joinedload(Deal.sales_rep)).get_or_404(deal_id)
     return jsonify({"deal": serialize_deal(deal)})
 
 @deal_bp.route("/deals/<int:deal_id>", methods=["PUT"])
 def update_deal(deal_id):
-    deal = Deal.query.get_or_404(deal_id)
+    deal = Deal.query.options(joinedload(Deal.client), joinedload(Deal.sales_rep)).get_or_404(deal_id)
     data = request.get_json()
     original_stage = deal.stage
 
