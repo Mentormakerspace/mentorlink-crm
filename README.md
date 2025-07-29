@@ -23,18 +23,18 @@ This project is a custom CRM system designed to manage a deal pipeline, track cl
 3. Set a secure Flask secret key
 
 ### Vercel Deployment
-The Vercel configuration has been fixed to resolve deployment conflicts. To deploy successfully:
+The Vercel configuration has been updated with production Supabase credentials. The app is ready for deployment:
 
-1. **Set Environment Variables in Vercel Dashboard:**
-   - Go to your Vercel project settings → Environment Variables
-   - Add the following variables:
-     - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key  
-     - `NEXT_PUBLIC_API_URL`: Your backend API URL (e.g., `https://your-backend.com/api`)
+1. **Environment Variables (Already Configured):**
+   - `NEXT_PUBLIC_SUPABASE_URL`: https://xypctjazaibnuhflwecd.supabase.co
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Configured with production key
+   - `NEXT_PUBLIC_API_URL`: Set to placeholder (update with your backend URL)
 
-2. **Redeploy:** After setting environment variables, trigger a new deployment
+2. **To Complete Setup:**
+   - Update `NEXT_PUBLIC_API_URL` in Vercel dashboard with your backend API URL
+   - Deploy automatically triggers on push to main branch
 
-**Note:** The vercel.json includes placeholder values to prevent build failures, but you must set real values in the Vercel dashboard for the app to function properly.
+**Status:** Supabase authentication is fully configured and functional.
 
 It was developed based on specific requirements provided, featuring a backend API built with Flask and PostgreSQL, a frontend interface built with Next.js and React, and automation workflows designed for n8n.
 

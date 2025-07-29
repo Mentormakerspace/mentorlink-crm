@@ -8,8 +8,8 @@
   "env": {
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://placeholder.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "placeholder_anon_key",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://xypctjazaibnuhflwecd.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5cGN0amF6YWlibnVoZmx3ZWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwMjgyNzIsImV4cCI6MjA1ODYwNDI3Mn0.fDHa8anE1m0My5lwcLMSYkOFX93Wrc7bOrZqTYPzkas",
     "NEXT_PUBLIC_API_URL": "https://placeholder-api.com/api"
   }
-}          
+}            
