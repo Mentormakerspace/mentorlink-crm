@@ -17,9 +17,14 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:3000"  # (optional, for local dev)
 ])
 
-# Database configuration using SQLite
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'crm.db')}"
+# Database configuration using PostgreSQL
+db_username = os.environ.get('DB_USERNAME', 'crm_user')
+db_password = os.environ.get('DB_PASSWORD', 'crm_password')
+db_host = os.environ.get('DB_HOST', 'db')
+db_port = os.environ.get('DB_PORT', '5432')
+db_name = os.environ.get('DB_NAME', 'crm_db')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

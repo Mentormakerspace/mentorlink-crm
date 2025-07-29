@@ -7,13 +7,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      POSTGRES_DB: ${DB_NAME:-crm_db}
-      POSTGRES_USER: ${DB_USERNAME:-crm_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-crm_password}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crm_password}
     ports:
       - "5432:5432"
     networks:
       - crm_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -21,7 +26,8 @@ services:
       dockerfile: Dockerfile # Assuming a Dockerfile exists in crm_backend
     container_name: crm_backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - ./crm_backend/.env # Load environment variables from .env file
     ports:
@@ -31,6 +37,7 @@ services:
     networks:
       - crm_network
     command: ["flask", "run", "--host=0.0.0.0"]
+    restart: unless-stopped
 
   frontend:
     build:
@@ -49,7 +56,7 @@ services:
       - /app/.next # Don't mount .next from host
     networks:
       - crm_network
-    command: ["pnpm", "dev"]
+    command: ["pnpm", "start"]
 
 networks:
   crm_network:
