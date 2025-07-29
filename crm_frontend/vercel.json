@@ -8,14 +8,5 @@
   "env": {
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1"
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next",
-      "config": {
-        "buildCommand": "node build.js"
-      }
-    }
-  ]
-} 
+  }
+}      

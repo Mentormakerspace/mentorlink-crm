@@ -8,6 +8,23 @@ This project is a custom CRM system designed to manage a deal pipeline, track cl
 ✅ Lint commands verified - Frontend ESLint configuration working (pnpm run lint)
 ✅ Development workflow verified - Branch creation and PR process functional
 
+## Quick Deployment Setup
+
+### Environment Variables Setup
+
+**Frontend Configuration:**
+1. Copy `crm_frontend/.env.local.template` to `crm_frontend/.env.local`
+2. Fill in your Supabase project URL and anon key
+3. Set your backend API URL for production
+
+**Backend Configuration:**
+1. Copy `crm_backend/.env.template` to `crm_backend/.env`
+2. Configure your database credentials
+3. Set a secure Flask secret key
+
+### Vercel Deployment
+The Vercel configuration has been fixed to resolve deployment conflicts. The frontend should now deploy successfully once environment variables are configured.
+
 It was developed based on specific requirements provided, featuring a backend API built with Flask and PostgreSQL, a frontend interface built with Next.js and React, and automation workflows designed for n8n.
 
 ## Features
