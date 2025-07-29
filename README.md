@@ -2,6 +2,12 @@
 
 This project is a custom CRM system designed to manage a deal pipeline, track client interactions, manage payments, and integrate with external services like Monday.com for project management kickoff.
 
+## Repository Verification
+
+✅ Repository access verified - Devin can successfully access and navigate the codebase
+✅ Lint commands verified - Frontend ESLint configuration working (pnpm run lint)
+✅ Development workflow verified - Branch creation and PR process functional
+
 It was developed based on specific requirements provided, featuring a backend API built with Flask and PostgreSQL, a frontend interface built with Next.js and React, and automation workflows designed for n8n.
 
 ## Features
