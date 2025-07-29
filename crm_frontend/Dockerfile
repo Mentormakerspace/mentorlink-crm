@@ -16,7 +16,10 @@ RUN pnpm install --no-frozen-lockfile
 # Copy the rest of the application
 COPY . .
 
-# Set environment variables
+# Set environment variables for Next.js build
+ENV NEXT_PUBLIC_API_URL=http://backend:5000/api
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder-project.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder_anon_key_needs_real_credentials
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000

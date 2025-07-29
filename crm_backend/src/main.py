@@ -48,6 +48,10 @@ app.register_blueprint(payment_schedule_bp, url_prefix='/api')
 app.register_blueprint(stage_history_bp, url_prefix='/api')
 app.register_blueprint(action_item_bp, url_prefix='/api')
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy", "message": "Backend API is running"}), 200
+
 # Serve static files (for potential basic frontend or testing)
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

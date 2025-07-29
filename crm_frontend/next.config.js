@@ -16,7 +16,15 @@ const nextConfig = {
     };
     return config;
   },
-  transpilePackages: ['@radix-ui/react-*']
+  transpilePackages: ['@radix-ui/react-*'],
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://backend:5000/api/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

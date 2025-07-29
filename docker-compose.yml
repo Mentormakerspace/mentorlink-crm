@@ -46,8 +46,10 @@ services:
     container_name: crm_frontend
     depends_on:
       - backend
-    env_file:
-      - ./crm_frontend/.env.local # Load environment variables from .env.local
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:5000/api
+      - NEXT_PUBLIC_SUPABASE_URL=https://placeholder-project.supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder_anon_key_needs_real_credentials
     ports:
       - "3000:3000"
     volumes:
