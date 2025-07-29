@@ -22,7 +22,7 @@ export default function KanbanColumn({ stage, deals, onDrop, onDragOver, onDragS
       <h3 className="text-lg font-semibold mb-4">{stage}</h3>
       {deals.length > 0 ? (
         deals.map((deal) => (
-          <DealCard key={deal.id} deal={deal} onDragStart={onDragStart} />
+          <DealCard key={deal.id} deal={deal} />
         ))
       ) : (
         <div className="text-center text-gray-500 text-sm pt-4">No deals in this stage</div>

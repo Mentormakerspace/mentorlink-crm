@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import apiClient from '../lib/apiClient';
+import { fetchDeals, updateDeal } from '../lib/apiClient';
 import KanbanColumn from './KanbanColumn';
 import { Deal } from '../types/crm';
 
@@ -13,7 +13,7 @@ export default function KanbanBoard() {
   useEffect(() => {
     const fetchDealsData = async () => {
       try {
-        const fetchedDeals = await apiClient.fetchDeals();
+        const fetchedDeals = await fetchDeals();
         setDeals(fetchedDeals);
       } catch (error) {
         console.error('Error fetching deals:', error);
@@ -32,7 +32,7 @@ export default function KanbanBoard() {
     const deal = deals.find(d => d.id === dealId);
     if (deal && deal.stage !== newStage) {
       try {
-        await apiClient.updateDeal(dealId, { stage: newStage });
+        await updateDeal(dealId, { stage: newStage });
         setDeals(deals.map(d => (d.id === dealId ? { ...d, stage: newStage } : d)));
       } catch (error) {
         console.error('Error updating deal stage:', error);

@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import apiClient from '@/lib/apiClient';
-import { AxiosInstance } from 'axios';
+import { fetchUsers, createUser, updateUser } from '@/lib/apiClient';
 
 interface User {
   id: number;
@@ -36,13 +35,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (user?.role === 'Admin') {
-      fetchUsers();
+      fetchUsersData();
     }
   }, [user]);
 
-  const fetchUsers = async () => {
+  const fetchUsersData = async () => {
     try {
-      const users = await apiClient.getUsers();
+      const users = await fetchUsers();
       setUsers(users);
     } catch (err) {
       setError('Failed to fetch users');
@@ -55,7 +54,7 @@ export default function AdminPage() {
     setSuccess('');
 
     try {
-      await apiClient.createUser(newUser);
+      await createUser(newUser);
       setSuccess('User created successfully');
       setNewUser({
         name: '',
@@ -63,7 +62,7 @@ export default function AdminPage() {
         password: '',
         role: 'SalesRep'
       });
-      fetchUsers();
+      fetchUsersData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create user');
     }
@@ -74,11 +73,11 @@ export default function AdminPage() {
     if (!editingUser) return;
 
     try {
-      await apiClient.updateUser(editingUser.id, { role: editingUser.role });
+      await updateUser(editingUser.id, { role: editingUser.role });
       setSuccess('User role updated successfully');
       setIsModalOpen(false);
       setEditingUser(null);
-      fetchUsers();
+      fetchUsersData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update user role');
     }
@@ -248,4 +247,4 @@ export default function AdminPage() {
       )}
     </div>
   );
-} 
+}  

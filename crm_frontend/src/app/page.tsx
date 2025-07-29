@@ -200,6 +200,26 @@ export default function Home() {
         <PaymentsModal
           dealId={selectedPaymentsDeal}
           payments={dealPayments[selectedPaymentsDeal]?.payments || []}
+          onClose={() => setSelectedPaymentsDeal(null)}
+          onPaymentAdded={() => {
+            const loadPayments = async () => {
+              try {
+                const payments = await fetchPaymentSchedules(selectedPaymentsDeal);
+                const totalPaid = payments
+                  .filter((p: any) => p.status === 'paid')
+                  .reduce((sum: number, p: any) => sum + parseFloat(p.amount_due), 0);
+                const deal = deals.find(d => d.id === selectedPaymentsDeal);
+                const outstanding = deal ? parseFloat(deal.estimated_value) - totalPaid : 0;
+                setDealPayments(prev => ({
+                  ...prev,
+                  [selectedPaymentsDeal]: { totalPaid, outstanding, payments }
+                }));
+              } catch (e) {
+                console.error('Failed to refresh payments:', e);
+              }
+            };
+            loadPayments();
+          }}
         />
       )}
     </main>

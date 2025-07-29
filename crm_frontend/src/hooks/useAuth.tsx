@@ -39,8 +39,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const data = await backendLogin({ email, password });
-      localStorage.setItem('jwt', data.token);
+      const data = await backendLogin(email, password);
+      localStorage.setItem('jwt', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       setLoading(false);
