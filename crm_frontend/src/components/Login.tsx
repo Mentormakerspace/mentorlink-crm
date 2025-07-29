@@ -66,7 +66,10 @@ const Login: React.FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <div className="flex flex-col items-center mb-6">
+          <img src="/logo.png" alt="MentorLink Logo" className="w-24 h-24 object-contain mb-4" />
+          <h2 className="text-2xl font-bold text-center">Login</h2>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>

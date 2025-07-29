@@ -19,9 +19,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
-            <img src="/logo.png" alt="MentorLink Logo" style={{ width: '200px', height: '200px', objectFit: 'contain' }} />
-          </div>
           {children}
         </AuthProvider>
       </body>
