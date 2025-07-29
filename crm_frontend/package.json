@@ -10,8 +10,7 @@
     "clean": "rimraf .next && rimraf node_modules/.cache",
     "build:worker": "opennextjs-cloudflare",
     "preview": "opennextjs-cloudflare && wrangler dev",
-    "cf-typegen": "wrangler types",
-    "prebuild": "pnpm install typescript@5.8.3 @types/react@18.3.20 @types/node@20.17.32 @types/react-dom@18.3.7 --no-frozen-lockfile"
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
