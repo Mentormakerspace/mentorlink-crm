@@ -67,6 +67,6 @@ def handle_exception(e):
     return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    # Ensure the app runs on 0.0.0.0 to be accessible externally if needed
-    app.run(host='0.0.0.0', port=5000, debug=True) # debug=False for production
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 

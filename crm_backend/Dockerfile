@@ -24,6 +24,6 @@ EXPOSE 5000
 ENV FLASK_APP=src/main.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Run the Flask application
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+# Run the Flask application on Railway's dynamic port
+CMD ["sh", "-c", "flask run --host=0.0.0.0 --port=${PORT:-5000}"]
 
