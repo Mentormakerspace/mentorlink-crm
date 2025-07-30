@@ -24,7 +24,6 @@ EXPOSE 5000
 ENV FLASK_APP=src/main.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Run the command specified in docker-compose.yml (flask run --host=0.0.0.0)
-# Or define a default command:
-# CMD ["flask", "run"]
+# Run the Flask application
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
 
