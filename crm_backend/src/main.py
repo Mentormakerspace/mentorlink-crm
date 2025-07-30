@@ -8,7 +8,7 @@ from flask_cors import CORS
 from src.models import db
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'railway-default-secret-key-change-in-production')
 CORS(app, supports_credentials=True, origins=[
     "https://deploy-preview-5--fluffy-raindrop-8c2959.netlify.app",
     "https://mentorlink-crm-git-devin-17538-f54589-scottys-projects-9465b3ac.vercel.app",
@@ -16,7 +16,7 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:3000",
     "https://localhost:3000"
 ])
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///crm.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app/crm.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
