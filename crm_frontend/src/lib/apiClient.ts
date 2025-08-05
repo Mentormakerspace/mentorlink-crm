@@ -19,7 +19,9 @@ interface UpdateUserPayload {
 }
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? '/api' 
+    : 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
