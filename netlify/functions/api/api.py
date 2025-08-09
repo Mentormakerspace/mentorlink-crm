@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 import asyncpg
 import os
 from pydantic import BaseModel
+from mangum import Mangum
 
 app = FastAPI()
 
@@ -91,3 +92,5 @@ async def get_payment_schedules(deal_id: int):
         return [dict(p) for p in payments]
     finally:
         await conn.close()
+
+handler = Mangum(app)

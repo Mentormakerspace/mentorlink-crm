@@ -2,3 +2,4 @@ fastapi
 python-jose[cryptography]
 passlib[bcrypt]
 asyncpg
+mangum

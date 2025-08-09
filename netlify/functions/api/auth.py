@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 import asyncpg
 import os
+from mangum import Mangum
 
 app = FastAPI()
 
@@ -44,3 +45,5 @@ async def login(creds: UserCredentials):
 @app.get('/validate')
 async def validate_token():
     return {'uuid': 'test-uuid', 'email_address': 'test@example.com', 'full_name': 'Test User'}
+
+handler = Mangum(app)

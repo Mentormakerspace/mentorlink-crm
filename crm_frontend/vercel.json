@@ -2,9 +2,9 @@
   "version": 2,
   "framework": "nextjs",
   "cleanUrls": true,
-  "buildCommand": "cd crm_frontend && pnpm run build",
-  "outputDirectory": "crm_frontend/.next",
-  "installCommand": "cd crm_frontend && pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": ".next",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "env": {
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1",
@@ -12,8 +12,8 @@
   },
   "builds": [
     {
-      "src": "crm_frontend/package.json",
+      "src": "package.json",
       "use": "@vercel/next"
     }
   ]
-}        
+}           
