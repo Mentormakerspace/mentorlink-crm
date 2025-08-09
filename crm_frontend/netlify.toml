@@ -1,6 +1,7 @@
 [build]
-  command = "cd crm_frontend && pnpm install && pnpm run build"
-  publish = "crm_frontend/.next"
+  base = "crm_frontend"
+  command = "pnpm install && pnpm run build"
+  publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
