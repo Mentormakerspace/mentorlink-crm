@@ -1,19 +1,4 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "cleanUrls": true,
-  "buildCommand": "pnpm run build",
-  "outputDirectory": ".next",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "env": {
-    "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "NEXT_PUBLIC_API_URL": "/api"
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ]
-}                 
+  "framework": "nextjs"
+}                    
