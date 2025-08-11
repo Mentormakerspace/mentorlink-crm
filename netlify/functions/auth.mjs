@@ -1,9 +1,22 @@
-const { Client } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import pg from 'pg';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+const { Client } = pg;
 
-const handler = async (event, context) => {
-  const { httpMethod, path, body, headers } = event;
+export default async (req, context) => {
+  const { method: httpMethod, url } = req;
+  const path = new URL(url).pathname;
+  
+  let body = '';
+  if (req.body) {
+    const reader = req.body.getReader();
+    const decoder = new TextDecoder();
+    let result = await reader.read();
+    while (!result.done) {
+      body += decoder.decode(result.value);
+      result = await reader.read();
+    }
+  }
   
   const client = new Client({
     user: process.env.DB_USER,
@@ -26,99 +39,90 @@ const handler = async (event, context) => {
       );
       
       if (result.rows.length === 0) {
-        return {
-          statusCode: 401,
+        return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+          status: 401,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({ error: 'Invalid credentials' })
-        };
+          }
+        });
       }
       
       const user = result.rows[0];
       const isValidPassword = await bcrypt.compare(credentials.password, user.password);
       
       if (!isValidPassword) {
-        return {
-          statusCode: 401,
+        return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+          status: 401,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({ error: 'Invalid credentials' })
-        };
+          }
+        });
       }
       
       const secretKey = process.env.JWT_SECRET_KEY || 'your-secure-key';
       const token = jwt.sign({ sub: user.uuid }, secretKey, { algorithm: 'HS256' });
       
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ 
+        access_token: token, 
+        refresh_token: token 
+      }), {
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-        },
-        body: JSON.stringify({ 
-          access_token: token, 
-          refresh_token: token 
-        })
-      };
+        }
+      });
     }
 
     if (httpMethod === 'GET' && (path.endsWith('/validate') || path.includes('/.netlify/functions/auth'))) {
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({
+        uuid: 'test-uuid',
+        email_address: 'test@example.com',
+        full_name: 'Test User'
+      }), {
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-        },
-        body: JSON.stringify({
-          uuid: 'test-uuid',
-          email_address: 'test@example.com',
-          full_name: 'Test User'
-        })
-      };
+        }
+      });
     }
 
     if (httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 200,
+      return new Response('', {
+        status: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-        },
-        body: ''
-      };
+        }
+      });
     }
 
-    return {
-      statusCode: 404,
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ error: 'Not found' })
-    };
+      }
+    });
 
   } catch (error) {
     console.error('Database error:', error);
-    return {
-      statusCode: 500,
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ error: error.message })
-    };
+      }
+    });
   } finally {
     await client.end();
   }
 };
-
-exports.handler = handler;
