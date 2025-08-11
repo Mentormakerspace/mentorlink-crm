@@ -38,7 +38,7 @@ export default function SignupPage() {
             <img src="/logo.png" alt="MentorLink Logo" className="w-32 h-32 object-contain" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            Create your MentorLink CRM account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Already have an account?{' '}
