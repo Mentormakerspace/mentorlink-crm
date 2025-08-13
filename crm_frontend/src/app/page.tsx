@@ -100,87 +100,90 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-8 lg:p-12 bg-gray-50">
-      <div className="z-10 w-full max-w-7xl items-center justify-between font-mono text-sm lg:flex mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Master Your Pipeline. Link Your Success.</h1>
-        <div className="flex items-center space-x-4">
-          {user && <span className="text-gray-600">Welcome, {user.name}</span>}
-          <button
-            onClick={handleOpenModal}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            + Create Deal
-          </button>
-          <button
-            onClick={handleOpenClientModal}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            + Create Company/Client
-          </button>
-          <button
-            onClick={logout}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Sign Out
-          </button>
+    <main className="min-h-screen flex flex-col items-center justify-start bg-gray-50">
+      <div className="w-full max-w-4xl flex flex-col items-center mx-auto">
+        <img src="/logo.png" alt="MentorLink Logo" className="w-40 h-40 mt-8 mb-4 mx-auto" />
+        <h1 className="text-3xl font-bold text-center mb-4 text-[var(--ml-primary)]">Master Your Pipeline. Link Your Success.</h1>
+        <div className="flex flex-col items-center mb-6 w-full">
+          <div className="flex flex-wrap justify-center gap-4 mb-4 w-full">
+            <button
+              onClick={handleOpenModal}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              + Create Deal
+            </button>
+            <button
+              onClick={handleOpenClientModal}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              + Create Company/Client
+            </button>
+            <button
+              onClick={logout}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Sign Out
+            </button>
+          </div>
+          {user && <span className="text-gray-600 text-center mb-2 w-full">Welcome, {user.name}</span>}
         </div>
-      </div>
-
-      {/* Add StatsDashboard component here */}
-      <StatsDashboard />
-
-      <div className="w-full max-w-7xl mt-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-700">Your Companies / Deals</h2>
-        <div className="bg-white rounded-lg shadow p-4 mb-8">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Stage</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estimated Value</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total Paid</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Outstanding</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Days in Process</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Days in Stage</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deals.map((deal) => (
-                <tr key={deal.id} className="hover:bg-gray-100 cursor-pointer">
-                  <td className="px-4 py-2">{deal.client_company || deal.client_id}</td>
-                  <td className="px-4 py-2">{deal.stage}</td>
-                  <td className="px-4 py-2">${parseFloat(deal.estimated_value).toLocaleString()}</td>
-                  <td className="px-4 py-2 text-green-700 font-bold">${dealPayments[deal.id]?.totalPaid?.toLocaleString() ?? '0'}</td>
-                  <td className="px-4 py-2 text-orange-700 font-bold">${dealPayments[deal.id]?.outstanding?.toLocaleString() ?? deal.estimated_value}</td>
-                  <td className="px-4 py-2">
-                    <span className="text-red-600 font-bold">
-                      {dealDays[deal.id]?.daysInProcess ?? '-'} days
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className="text-red-600 font-bold">
-                      {dealDays[deal.id]?.daysInStage ?? '-'} days
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <button
-                      className="text-white bg-gradient-to-r from-[var(--ml-primary)] to-[var(--ml-primary-dark)] rounded px-4 py-2 font-semibold shadow hover:opacity-90 transition"
-                      onClick={() => setSelectedPaymentsDeal(deal.id)}
-                    >
-                      Payments
-                    </button>
-                  </td>
+        {/* Add StatsDashboard component here */}
+        <div className="w-full mb-8">
+          <StatsDashboard />
+        </div>
+        <div className="w-full">
+          <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Your Companies / Deals</h2>
+          <div className="bg-white rounded-lg shadow p-4 mb-8 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-center">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Company</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Stage</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Estimated Value</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Total Paid</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Outstanding</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Days in Process</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Days in Stage</th>
+                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {deals.map((deal) => (
+                  <tr key={deal.id} className="hover:bg-gray-100 cursor-pointer">
+                    <td className="px-4 py-2">{deal.client_company || deal.client_id}</td>
+                    <td className="px-4 py-2">{deal.stage}</td>
+                    <td className="px-4 py-2">${parseFloat(deal.estimated_value).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-green-700 font-bold">${dealPayments[deal.id]?.totalPaid?.toLocaleString() ?? '0'}</td>
+                    <td className="px-4 py-2 text-orange-700 font-bold">${dealPayments[deal.id]?.outstanding?.toLocaleString() ?? deal.estimated_value}</td>
+                    <td className="px-4 py-2">
+                      <span className="text-red-600 font-bold">
+                        {dealDays[deal.id]?.daysInProcess ?? '-'} days
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className="text-red-600 font-bold">
+                        {dealDays[deal.id]?.daysInStage ?? '-'} days
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        className="text-white bg-gradient-to-r from-[var(--ml-primary)] to-[var(--ml-primary-dark)] rounded px-4 py-2 font-semibold shadow hover:opacity-90 transition"
+                        onClick={() => setSelectedPaymentsDeal(deal.id)}
+                      >
+                        Payments
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Pipeline</h2>
+          <div className="w-full">
+            <KanbanBoard />
+          </div>
         </div>
-
-        <h2 className="text-xl font-semibold mb-4 text-gray-700">Pipeline</h2>
-        <KanbanBoard />
       </div>
-
       {/* Render the modals */}
       <CreateDealModal
         isOpen={isModalOpen}
@@ -192,27 +195,13 @@ export default function Home() {
         onClose={handleCloseClientModal}
         onClientCreated={handleClientCreated}
       />
-
       {/* Payments Modal */}
       {selectedPaymentsDeal && (
         <PaymentsModal
           dealId={selectedPaymentsDeal}
           payments={dealPayments[selectedPaymentsDeal]?.payments || []}
-          onClose={() => setSelectedPaymentsDeal(null)}
-          onPaymentAdded={() => {
-            // Refresh payments for the deal
-            // (re-run loadDeals or just refetch payments for this deal)
-            // For simplicity, reload all deals
-            if (user) {
-              const loadDeals = async () => {
-                // ... same as above ...
-              };
-              loadDeals();
-            }
-          }}
         />
       )}
-
     </main>
   );
 }
