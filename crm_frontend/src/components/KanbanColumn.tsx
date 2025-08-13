@@ -1,44 +1,32 @@
+'use client';
+
 import React from 'react';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { Deal } from '../types/crm';
 import DealCard from './DealCard';
+import { Deal } from '../types/crm';
 
 interface KanbanColumnProps {
-  id: string; // Unique ID for the droppable column (e.g., 'column-Lead')
-  title: string;
+  stage: string;
   deals: Deal[];
+  onDrop: (e: React.DragEvent, stage: string) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragStart: (e: React.DragEvent, dealId: number) => void;
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ id, title, deals }) => {
-  const { setNodeRef } = useDroppable({
-    id,
-  });
-
-  // Create an array of deal IDs for SortableContext
-  const dealIds = deals.map(deal => `deal-${deal.id}`);
-
+export default function KanbanColumn({ stage, deals, onDrop, onDragOver, onDragStart }: KanbanColumnProps) {
   return (
     <div
-      ref={setNodeRef}
-      className="bg-gray-200 rounded-lg p-3 w-72 flex-shrink-0 flex flex-col h-full"
-      style={{ minHeight: '300px' }} // Ensure columns have a minimum height
+      className="flex-1 min-w-[200px] bg-gray-100 p-4 rounded-lg"
+      onDrop={(e) => onDrop(e, stage)}
+      onDragOver={onDragOver}
     >
-      <h2 className="font-semibold mb-3 text-lg text-gray-700 px-1">{title}</h2>
-      <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2 flex-grow overflow-y-auto">
-          {deals.length > 0 ? (
-            deals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))
-          ) : (
-            <div className="text-center text-gray-500 text-sm pt-4">No deals in this stage</div>
-          )}
-        </div>
-      </SortableContext>
+      <h3 className="text-lg font-semibold mb-4">{stage}</h3>
+      {deals.length > 0 ? (
+        deals.map((deal) => (
+          <DealCard key={deal.id} deal={deal} onDragStart={onDragStart} />
+        ))
+      ) : (
+        <div className="text-center text-gray-500 text-sm pt-4">No deals in this stage</div>
+      )}
     </div>
   );
-};
-
-export default KanbanColumn;
-
+}
