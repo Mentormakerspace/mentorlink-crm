@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login as backendLogin } from '../lib/apiClient';
+import { login as apiLogin } from '../lib/apiClient';
 
 interface User {
   id: number;
@@ -28,7 +28,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // On mount, check localStorage for user and token
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -39,8 +38,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const data = await backendLogin({ email, password });
-      localStorage.setItem('jwt', data.token);
+      const data = await apiLogin({ email, password });
+      localStorage.setItem('access_token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       setLoading(false);
@@ -53,12 +52,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    // Clear auth data
-    localStorage.removeItem('jwt');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('user');
     setUser(null);
-    // Force a hard navigation to the login page
-    window.location.href = '/login';
   };
 
   const value = {

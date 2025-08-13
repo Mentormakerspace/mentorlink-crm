@@ -1,19 +1,36 @@
 [build]
-  command = "cd crm_frontend && pnpm install && pnpm run build"
-  publish = "crm_frontend/.next"
+  base = "crm_frontend"
+  command = "pnpm install && pnpm run build"
+  publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18"
   PNPM_VERSION = "8.15.4"
+  FORCE_DEPLOY = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  from = "/api/users"
+  to = "/.netlify/functions/users"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*"
+  to = "/.netlify/functions/users"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/login"
+  to = "/.netlify/functions/auth"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/validate"
+  to = "/.netlify/functions/auth"
   status = 200
 
 [functions]
-  directory = "netlify/functions"
+  directory = "../netlify/functions"
