@@ -25,5 +25,5 @@ ENV FLASK_APP=src/main.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Start gunicorn on the PORT provided by Railway (falls back to 5000 for local/Docker)
-CMD gunicorn --bind "0.0.0.0:${PORT:-5000}" --workers 2 src.main:app
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 2 src.main:app"]
 
