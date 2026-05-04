@@ -17,9 +17,8 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:3000"  # (optional, for local dev)
 ])
 
-# Database configuration using SQLite
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'crm.db')}"
+# Database configuration using SQLite — use /tmp so it's always writable in any container
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/crm.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
