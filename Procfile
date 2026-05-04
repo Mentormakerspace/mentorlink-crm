@@ -1,1 +1,1 @@
-web: cd crm_backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 src.main:app
+web: gunicorn --bind 0.0.0.0:$PORT --workers 1 --chdir /app/crm_backend src.main:app
