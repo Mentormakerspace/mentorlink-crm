@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // Import useState and useEffect
+import React, { useState, useEffect, useCallback } from 'react';
 import KanbanBoard from '@/components/KanbanBoard';
 import StatsDashboard from '@/components/StatsDashboard';
 import Login from '@/components/Login';
@@ -8,166 +8,245 @@ import CreateDealModal from '@/components/CreateDealModal';
 import CreateClientModal from '@/components/CreateClientModal';
 import PaymentsModal from '@/components/PaymentsModal';
 import { useAuth } from '@/hooks/useAuth';
-import { Deal } from '@/types/crm'; // Import Deal type
+import { Deal } from '@/types/crm';
 import { fetchDeals, fetchStageHistory, fetchPaymentSchedules } from '@/lib/apiClient';
+
+type DealDays = Record<number, { daysInProcess: number; daysInStage: number }>;
+type DealPayments = Record<number, { totalPaid: number; outstanding: number; payments: any[] }>;
 
 export default function Home() {
   const { user, logout } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for deal modal
-  const [isClientModalOpen, setIsClientModalOpen] = useState(false); // State for client modal
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false); // State for company modal
-  const [deals, setDeals] = useState<Deal[]>([]); // State to hold deals
-  const [dealDays, setDealDays] = useState<Record<number, { daysInProcess: number; daysInStage: number }>>({});
-  const [dealPayments, setDealPayments] = useState<Record<number, { totalPaid: number; outstanding: number; payments: any[] }>>({});
+  const [isDealModalOpen, setIsDealModalOpen] = useState(false);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [dealDays, setDealDays] = useState<DealDays>({});
+  const [dealPayments, setDealPayments] = useState<DealPayments>({});
   const [selectedPaymentsDeal, setSelectedPaymentsDeal] = useState<number | null>(null);
 
-  useEffect(() => {
-    const loadDeals = async () => {
-      try {
-        const fetchedDeals = await fetchDeals();
-        let filteredDeals = fetchedDeals;
-        if (user && user.role === 'SalesRep') {
-          filteredDeals = fetchedDeals.filter((deal: Deal) => deal.sales_rep_id === user.id);
-        }
-        setDeals(filteredDeals);
+  const loadDeals = useCallback(async () => {
+    if (!user) return;
+    try {
+      const fetched = await fetchDeals();
+      const filtered = user.role === 'SalesRep'
+        ? fetched.filter((d: Deal) => d.sales_rep_id === user.id)
+        : fetched;
+      setDeals(filtered);
 
-        // For each deal, fetch stage history and payment schedules
-        const today = new Date();
-        const daysObj: Record<number, { daysInProcess: number; daysInStage: number }> = {};
-        const paymentsObj: Record<number, { totalPaid: number; outstanding: number; payments: any[] }> = {};
-        await Promise.all(
-          filteredDeals.map(async (deal: Deal) => {
-            // Days in process
-            const createdAt = new Date(deal.created_at);
-            const daysInProcess = Math.max(1, Math.round((today.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)));
-            // Days in stage
-            let daysInStage = 0;
-            try {
-              const history = await fetchStageHistory(deal.id);
-              const currentStage = history.find((h: any) => !h.exited_at);
-              if (currentStage) {
-                const entered = new Date(currentStage.entered_at);
-                daysInStage = Math.max(1, Math.round((today.getTime() - entered.getTime()) / (1000 * 60 * 60 * 24)));
-              }
-            } catch (e) {
-              daysInStage = 0;
-            }
-            daysObj[deal.id] = { daysInProcess, daysInStage };
+      const today = new Date();
+      const daysObj: DealDays = {};
+      const paymentsObj: DealPayments = {};
 
-            // Payments
-            try {
-              const payments = await fetchPaymentSchedules(deal.id);
-              const totalPaid = payments
-                .filter((p: any) => p.status === 'paid')
-                .reduce((sum: number, p: any) => sum + parseFloat(p.amount_due), 0);
-              const outstanding = parseFloat(deal.estimated_value) - totalPaid;
-              paymentsObj[deal.id] = { totalPaid, outstanding, payments };
-            } catch (e) {
-              paymentsObj[deal.id] = { totalPaid: 0, outstanding: parseFloat(deal.estimated_value), payments: [] };
+      await Promise.all(
+        filtered.map(async (deal: Deal) => {
+          const daysInProcess = Math.max(1, Math.round(
+            (today.getTime() - new Date(deal.created_at).getTime()) / 86400000
+          ));
+          let daysInStage = 0;
+          try {
+            const history = await fetchStageHistory(deal.id);
+            const current = history.find((h: any) => !h.exited_at);
+            if (current) {
+              daysInStage = Math.max(1, Math.round(
+                (today.getTime() - new Date(current.entered_at).getTime()) / 86400000
+              ));
             }
-          })
-        );
-        setDealDays(daysObj);
-        setDealPayments(paymentsObj);
-      } catch (e) {
-        setDeals([]);
-        setDealDays({});
-        setDealPayments({});
-      }
-    };
-    if (user) loadDeals();
+          } catch { /* ignore */ }
+          daysObj[deal.id] = { daysInProcess, daysInStage };
+
+          try {
+            const payments = await fetchPaymentSchedules(deal.id);
+            const totalPaid = payments
+              .filter((p: any) => p.status === 'paid')
+              .reduce((sum: number, p: any) => sum + parseFloat(p.amount_due), 0);
+            paymentsObj[deal.id] = {
+              totalPaid,
+              outstanding: parseFloat(deal.estimated_value) - totalPaid,
+              payments,
+            };
+          } catch {
+            paymentsObj[deal.id] = { totalPaid: 0, outstanding: parseFloat(deal.estimated_value), payments: [] };
+          }
+        })
+      );
+
+      setDealDays(daysObj);
+      setDealPayments(paymentsObj);
+    } catch {
+      setDeals([]);
+    }
   }, [user]);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleOpenClientModal = () => setIsClientModalOpen(true);
-  const handleCloseClientModal = () => setIsClientModalOpen(false);
-  const handleOpenCompanyModal = () => setIsCompanyModalOpen(true);
-  const handleCloseCompanyModal = () => setIsCompanyModalOpen(false);
+  useEffect(() => {
+    loadDeals();
+  }, [loadDeals]);
 
-  // Callback function to add the new deal to the state
   const handleDealCreated = (newDeal: Deal) => {
-    setDeals(prevDeals => [...prevDeals, newDeal]);
+    setDeals(prev => [...prev, newDeal]);
   };
 
-  // Callback for client creation (optional: refetch clients or show toast)
-  const handleClientCreated = (newClient: any) => {
-    // Optionally refetch clients or show a notification
+  const handlePaymentAdded = async () => {
+    if (selectedPaymentsDeal) {
+      try {
+        const payments = await fetchPaymentSchedules(selectedPaymentsDeal);
+        const deal = deals.find(d => d.id === selectedPaymentsDeal);
+        if (deal) {
+          const totalPaid = payments
+            .filter((p: any) => p.status === 'paid')
+            .reduce((sum: number, p: any) => sum + parseFloat(p.amount_due), 0);
+          setDealPayments(prev => ({
+            ...prev,
+            [selectedPaymentsDeal]: {
+              totalPaid,
+              outstanding: parseFloat(deal.estimated_value) - totalPaid,
+              payments,
+            },
+          }));
+        }
+      } catch { /* ignore */ }
+    }
   };
 
-  if (!user) {
-    return <Login />; // Show login page if not authenticated
-  }
+  const stageColor = (stage: string) => {
+    const map: Record<string, string> = {
+      Lead: 'bg-gray-100 text-gray-600',
+      Qualification: 'bg-blue-50 text-blue-700',
+      Proposal: 'bg-purple-50 text-purple-700',
+      Negotiation: 'bg-amber-50 text-amber-700',
+      'Closed Won': 'bg-green-50 text-green-700',
+      'Closed Lost': 'bg-red-50 text-red-600',
+      Prospect: 'bg-blue-50 text-blue-700',
+      Contract: 'bg-indigo-50 text-indigo-700',
+      Deposit: 'bg-teal-50 text-teal-700',
+    };
+    return map[stage] || 'bg-gray-100 text-gray-600';
+  };
+
+  const daysBadge = (days: number) => {
+    if (days <= 7) return 'text-green-700';
+    if (days <= 21) return 'text-amber-700';
+    return 'text-red-600';
+  };
+
+  if (!user) return <Login />;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start bg-gray-50">
-      <div className="w-full max-w-4xl flex flex-col items-center mx-auto">
-        <img src="/logo.png" alt="MentorLink Logo" className="w-40 h-40 mt-8 mb-4 mx-auto" />
-        <h1 className="text-3xl font-bold text-center mb-4 text-[var(--ml-primary)]">Master Your Pipeline. Link Your Success.</h1>
-        <div className="flex flex-col items-center mb-6 w-full">
-          <div className="flex flex-wrap justify-center gap-4 mb-4 w-full">
-            <button
-              onClick={handleOpenModal}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              + Create Deal
-            </button>
-            <button
-              onClick={handleOpenClientModal}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              + Create Company/Client
-            </button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top nav */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="MentorLink" className="h-7 w-7 object-contain" />
+            <span className="font-bold text-gray-900 text-sm tracking-tight">MentorLink CRM</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500 hidden sm:block">
+              {user.name}
+              {user.role !== 'SalesRep' && (
+                <span className="ml-1.5 text-xs bg-purple-50 text-purple-700 font-medium px-1.5 py-0.5 rounded-full">
+                  {user.role}
+                </span>
+              )}
+            </span>
+            {user.role === 'Admin' || user.role === 'Owner' ? (
+              <a
+                href="/admin"
+                className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                Admin
+              </a>
+            ) : null}
             <button
               onClick={logout}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 px-2.5 py-1.5 rounded-md transition-colors"
             >
-              Sign Out
+              Sign out
             </button>
           </div>
-          {user && <span className="text-gray-600 text-center mb-2 w-full">Welcome, {user.name}</span>}
         </div>
-        {/* Add StatsDashboard component here */}
-        <div className="w-full mb-8">
-          <StatsDashboard />
+      </header>
+
+      <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 py-6">
+        {/* Action bar */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-lg font-bold text-gray-900">Pipeline</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsClientModalOpen(true)}
+              className="text-sm font-medium text-gray-700 border border-gray-200 bg-white px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              + Client
+            </button>
+            <button
+              onClick={() => setIsDealModalOpen(true)}
+              className="text-sm font-semibold text-white px-3 py-1.5 rounded-md bg-[#6C63FF] hover:bg-[#5A52E0] transition-colors"
+            >
+              + New Deal
+            </button>
+          </div>
         </div>
-        <div className="w-full">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Your Companies / Deals</h2>
-          <div className="bg-white rounded-lg shadow p-4 mb-8 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-center">
+
+        {/* Stats */}
+        <StatsDashboard />
+
+        {/* Deals table */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-800">All Deals</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
               <thead>
-                <tr>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Company</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Stage</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Estimated Value</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Total Paid</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Outstanding</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Days in Process</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Days in Stage</th>
-                  <th className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">Action</th>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Company</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Stage</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Value</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Paid</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Outstanding</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">In Process</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">In Stage</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-medium text-gray-500 uppercase tracking-wide"></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
+                {deals.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                      No deals yet. Create your first deal to get started.
+                    </td>
+                  </tr>
+                )}
                 {deals.map((deal) => (
-                  <tr key={deal.id} className="hover:bg-gray-100 cursor-pointer">
-                    <td className="px-4 py-2">{deal.client_company || deal.client_id}</td>
-                    <td className="px-4 py-2">{deal.stage}</td>
-                    <td className="px-4 py-2">${parseFloat(deal.estimated_value).toLocaleString()}</td>
-                    <td className="px-4 py-2 text-green-700 font-bold">${dealPayments[deal.id]?.totalPaid?.toLocaleString() ?? '0'}</td>
-                    <td className="px-4 py-2 text-orange-700 font-bold">${dealPayments[deal.id]?.outstanding?.toLocaleString() ?? deal.estimated_value}</td>
-                    <td className="px-4 py-2">
-                      <span className="text-red-600 font-bold">
-                        {dealDays[deal.id]?.daysInProcess ?? '-'} days
+                  <tr key={deal.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {deal.client_company || `Client #${deal.client_id}`}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${stageColor(deal.stage)}`}>
+                        {deal.stage}
                       </span>
                     </td>
-                    <td className="px-4 py-2">
-                      <span className="text-red-600 font-bold">
-                        {dealDays[deal.id]?.daysInStage ?? '-'} days
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">
+                      ${parseFloat(deal.estimated_value).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-right text-green-700 font-medium">
+                      ${(dealPayments[deal.id]?.totalPaid ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700 font-medium">
+                      ${(dealPayments[deal.id]?.outstanding ?? parseFloat(deal.estimated_value)).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-semibold text-xs ${daysBadge(dealDays[deal.id]?.daysInProcess ?? 0)}`}>
+                        {dealDays[deal.id]?.daysInProcess ?? '—'} days
                       </span>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-semibold text-xs ${daysBadge(dealDays[deal.id]?.daysInStage ?? 0)}`}>
+                        {dealDays[deal.id]?.daysInStage ?? '—'} days
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <button
-                        className="text-white bg-gradient-to-r from-[var(--ml-primary)] to-[var(--ml-primary-dark)] rounded px-4 py-2 font-semibold shadow hover:opacity-90 transition"
+                        className="text-xs font-medium text-[#6C63FF] hover:text-[#5A52E0] transition-colors"
                         onClick={() => setSelectedPaymentsDeal(deal.id)}
                       >
                         Payments
@@ -178,31 +257,31 @@ export default function Home() {
               </tbody>
             </table>
           </div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">Pipeline</h2>
-          <div className="w-full">
-            <KanbanBoard />
-          </div>
         </div>
-      </div>
-      {/* Render the modals */}
+
+        {/* Kanban */}
+        <h2 className="text-sm font-semibold text-gray-800 mb-3">Kanban View</h2>
+        <KanbanBoard />
+      </main>
+
       <CreateDealModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isDealModalOpen}
+        onClose={() => setIsDealModalOpen(false)}
         onDealCreated={handleDealCreated}
       />
       <CreateClientModal
         isOpen={isClientModalOpen}
-        onClose={handleCloseClientModal}
-        onClientCreated={handleClientCreated}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={() => {}}
       />
-      {/* Payments Modal */}
-      {selectedPaymentsDeal && (
+      {selectedPaymentsDeal !== null && (
         <PaymentsModal
           dealId={selectedPaymentsDeal}
           payments={dealPayments[selectedPaymentsDeal]?.payments || []}
+          onClose={() => setSelectedPaymentsDeal(null)}
+          onPaymentAdded={handlePaymentAdded}
         />
       )}
-    </main>
+    </div>
   );
 }
-

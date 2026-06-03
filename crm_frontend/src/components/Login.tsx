@@ -11,11 +11,10 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSignUp, setShowSignUp] = useState(false);
-  // Sign up state
+
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupRole, setSignupRole] = useState('SalesRep');
   const [signupLoading, setSignupLoading] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
   const [signupSuccess, setSignupSuccess] = useState<string | null>(null);
@@ -27,7 +26,7 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
       router.push('/');
-    } catch (err: any) {
+    } catch {
       setError('Invalid email or password.');
     } finally {
       setLoading(false);
@@ -38,9 +37,8 @@ const Login: React.FC = () => {
     e.preventDefault();
     setSignupError(null);
     setSignupSuccess(null);
-    // Frontend validation
-    if (!signupName || !signupEmail || !signupPassword || !signupRole) {
-      setSignupError('Please fill in all required fields.');
+    if (!signupName || !signupEmail || !signupPassword) {
+      setSignupError('Please fill in all fields.');
       return;
     }
     setSignupLoading(true);
@@ -49,127 +47,147 @@ const Login: React.FC = () => {
         name: signupName,
         email: signupEmail,
         password: signupPassword,
-        role: signupRole,
+        role: 'SalesRep',
       });
-      setSignupSuccess('Account created! You can now log in.');
+      setSignupSuccess('Account created. You can now sign in.');
       setSignupName('');
       setSignupEmail('');
       setSignupPassword('');
-      setSignupRole('SalesRep');
+      setShowSignUp(false);
     } catch (err: any) {
-      setSignupError(err.response?.data?.message || 'Failed to sign up.');
+      setSignupError(err.response?.data?.message || 'Failed to create account.');
     } finally {
       setSignupLoading(false);
     }
   };
 
+  const inputClass =
+    'w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF] focus:border-transparent transition bg-white';
+
+  const toggleMode = () => {
+    setShowSignUp(v => !v);
+    setError(null);
+    setSignupError(null);
+    setSignupSuccess(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setShowSignUp((v) => !v)}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            {showSignUp ? 'Back to Login' : 'Sign Up'}
-          </button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-sm px-4">
+        <div className="flex flex-col items-center mb-8">
+          <img src="/logo.png" alt="MentorLink" className="h-12 w-12 mb-3 object-contain" />
+          <span className="text-xl font-bold text-gray-900 tracking-tight">MentorLink CRM</span>
+          <span className="text-sm text-gray-500 mt-1">
+            {showSignUp ? 'Create your account' : 'Sign in to your account'}
+          </span>
         </div>
-        {showSignUp && (
-          <form onSubmit={handleSignUp} className="space-y-4 mt-6">
-            <h3 className="text-lg font-semibold text-center">Sign Up</h3>
-            <div>
-              <label htmlFor="signupName" className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                id="signupName"
-                value={signupName}
-                onChange={(e) => setSignupName(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="signupEmail"
-                value={signupEmail}
-                onChange={(e) => setSignupEmail(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="signupPassword" className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                id="signupPassword"
-                value={signupPassword}
-                onChange={(e) => setSignupPassword(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="signupRole" className="block text-sm font-medium text-gray-700">Role</label>
-              <select
-                id="signupRole"
-                value={signupRole}
-                onChange={(e) => setSignupRole(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                disabled
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          {!showSignUp ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className={inputClass}
+                  placeholder="you@mentorlink.ai"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className={inputClass}
+                  placeholder="••••••••"
+                />
+              </div>
+              {error && (
+                <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{error}</p>
+              )}
+              {signupSuccess && (
+                <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-md">{signupSuccess}</p>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2 px-4 rounded-md text-sm font-semibold text-white bg-[#6C63FF] hover:bg-[#5A52E0] disabled:opacity-50 transition-colors"
               >
-                <option value="SalesRep">SalesRep</option>
-              </select>
-            </div>
-            {signupError && <p className="text-sm text-red-600">{signupError}</p>}
-            {signupSuccess && <p className="text-sm text-green-600">{signupSuccess}</p>}
+                {loading ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div>
+                <label htmlFor="signupName" className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                <input
+                  id="signupName"
+                  type="text"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="Jane Smith"
+                />
+              </div>
+              <div>
+                <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  id="signupEmail"
+                  type="email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="you@mentorlink.ai"
+                />
+              </div>
+              <div>
+                <label htmlFor="signupPassword" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  id="signupPassword"
+                  type="password"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="••••••••"
+                />
+              </div>
+              {signupError && (
+                <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{signupError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={signupLoading}
+                className="w-full py-2 px-4 rounded-md text-sm font-semibold text-white bg-[#6C63FF] hover:bg-[#5A52E0] disabled:opacity-50 transition-colors"
+              >
+                {signupLoading ? 'Creating account…' : 'Create account'}
+              </button>
+            </form>
+          )}
+
+          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
             <button
-              type="submit"
-              disabled={signupLoading}
-              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              onClick={toggleMode}
+              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
             >
-              {signupLoading ? 'Signing up...' : 'Sign Up'}
+              {showSignUp ? '← Back to sign in' : 'Need an account? Sign up'}
             </button>
-          </form>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default Login;
-
