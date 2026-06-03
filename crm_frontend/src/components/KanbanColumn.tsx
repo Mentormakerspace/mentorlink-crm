@@ -1,44 +1,50 @@
+'use client';
+
 import React from 'react';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { Deal } from '../types/crm';
 import DealCard from './DealCard';
+import { Deal } from '../types/crm';
 
 interface KanbanColumnProps {
-  id: string; // Unique ID for the droppable column (e.g., 'column-Lead')
-  title: string;
+  stage: string;
   deals: Deal[];
+  onDrop: (e: React.DragEvent, stage: string) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragStart: (e: React.DragEvent, dealId: number) => void;
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ id, title, deals }) => {
-  const { setNodeRef } = useDroppable({
-    id,
-  });
-
-  // Create an array of deal IDs for SortableContext
-  const dealIds = deals.map(deal => `deal-${deal.id}`);
+export default function KanbanColumn({ stage, deals, onDrop, onDragOver, onDragStart }: KanbanColumnProps) {
+  const totalValue = deals.reduce((sum, d) => sum + parseFloat(d.estimated_value || '0'), 0);
 
   return (
     <div
-      ref={setNodeRef}
-      className="bg-gray-200 rounded-lg p-3 w-72 flex-shrink-0 flex flex-col h-full"
-      style={{ minHeight: '300px' }} // Ensure columns have a minimum height
+      className="flex-1 min-w-[220px] max-w-[280px] flex flex-col bg-gray-50 rounded-lg border border-gray-200"
+      onDrop={(e) => onDrop(e, stage)}
+      onDragOver={onDragOver}
     >
-      <h2 className="font-semibold mb-3 text-lg text-gray-700 px-1">{title}</h2>
-      <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2 flex-grow overflow-y-auto">
-          {deals.length > 0 ? (
-            deals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))
-          ) : (
-            <div className="text-center text-gray-500 text-sm pt-4">No deals in this stage</div>
-          )}
+      <div className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-800">{stage}</span>
+          <span className="text-xs bg-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded-full">
+            {deals.length}
+          </span>
         </div>
-      </SortableContext>
+        {deals.length > 0 && (
+          <span className="text-xs text-gray-500 font-medium">
+            ${totalValue.toLocaleString()}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 p-2 overflow-y-auto min-h-[80px]">
+        {deals.length > 0 ? (
+          deals.map((deal) => (
+            <DealCard key={deal.id} deal={deal} onDragStart={onDragStart} />
+          ))
+        ) : (
+          <div className="flex items-center justify-center h-16 text-xs text-gray-400">
+            No deals
+          </div>
+        )}
+      </div>
     </div>
   );
-};
-
-export default KanbanColumn;
-
+}

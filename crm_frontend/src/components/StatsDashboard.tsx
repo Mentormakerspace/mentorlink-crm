@@ -29,36 +29,32 @@ const StatsDashboard = () => {
         setDeals(fetchedDeals || []);
         setError(null);
 
-        // Fetch all stage histories in parallel
         const allStageHistories: StageHistory[] = [];
         await Promise.all(
           (fetchedDeals || []).map(async (deal: Deal) => {
             try {
               const histories = await fetchStageHistory(deal.id);
               allStageHistories.push(...histories);
-            } catch (e) {
-              // Ignore errors for individual deals
+            } catch {
+              // ignore individual deal errors
             }
           })
         );
 
-        // Calculate average time in stage
         if (allStageHistories.length > 0) {
           const today = new Date();
           let totalDays = 0;
           allStageHistories.forEach((history) => {
             const entered = new Date(history.entered_at);
             const exited = history.exited_at ? new Date(history.exited_at) : today;
-            const diffTime = exited.getTime() - entered.getTime();
-            const diffDays = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+            const diffDays = Math.max(1, Math.round((exited.getTime() - entered.getTime()) / (1000 * 60 * 60 * 24)));
             totalDays += diffDays;
           });
-          const avg = totalDays / allStageHistories.length;
-          setAverageTimeInStage(`${avg.toFixed(1)} days`);
+          setAverageTimeInStage(`${(totalDays / allStageHistories.length).toFixed(1)} days`);
         } else {
           setAverageTimeInStage('N/A');
         }
-      } catch (err: any) {
+      } catch {
         setError('Failed to load stats.');
       } finally {
         setLoading(false);
@@ -67,51 +63,54 @@ const StatsDashboard = () => {
     loadStats();
   }, []);
 
-  // Calculate stats
-  const totalPipelineValue = deals.reduce((sum, deal) => sum + parseFloat(deal.estimated_value || '0'), 0);
-  const contractedDeals = deals.filter(deal => contractedStages.includes(deal.stage));
-  const totalContractedValue = contractedDeals.reduce((sum, deal) => sum + parseFloat(deal.estimated_value || '0'), 0);
+  const totalPipelineValue = deals.reduce((sum, d) => sum + parseFloat(d.estimated_value || '0'), 0);
+  const contractedDeals = deals.filter(d => contractedStages.includes(d.stage));
+  const totalContractedValue = contractedDeals.reduce((sum, d) => sum + parseFloat(d.estimated_value || '0'), 0);
   const averageDealSize = deals.length > 0 ? totalPipelineValue / deals.length : 0;
-
-  // Receivables = Total Pipeline Value - Total Deposits (Deposit stage)
-  const depositDeals = deals.filter(deal => deal.stage === 'Deposit');
-  const totalDeposits = depositDeals.reduce((sum, deal) => sum + parseFloat(deal.estimated_value || '0'), 0);
+  const depositDeals = deals.filter(d => d.stage === 'Deposit');
+  const totalDeposits = depositDeals.reduce((sum, d) => sum + parseFloat(d.estimated_value || '0'), 0);
   const currentReceivables = totalPipelineValue - totalDeposits;
 
-  // Placeholder for lead time (not implemented)
-  const averageLeadTimePerStage = 'N/A';
-
   if (loading) {
-    return <div className="text-center p-4">Loading stats...</div>;
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 w-full mb-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+            <div className="h-3 bg-gray-200 rounded mb-3 w-3/4" />
+            <div className="h-6 bg-gray-200 rounded w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
   }
+
   if (error) {
-    return <div className="text-center p-4 text-red-600">{error}</div>;
+    return <div className="text-sm text-red-600 mb-6">{error}</div>;
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-7xl mb-8">
-      <StatCard title="Total Pipeline Value" value={`$${totalPipelineValue.toLocaleString()}`} />
-      <StatCard title="Total Contracted Value" value={`$${totalContractedValue.toLocaleString()}`} />
-      <StatCard title="Current Receivables" value={`$${currentReceivables.toLocaleString()}`} />
-      <StatCard title="Average Deal Size" value={`$${averageDealSize.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-      <StatCard title="Avg. Lead Time Per Stage" value={averageLeadTimePerStage} />
-      <StatCard title="Avg. Time In Stage" value={averageTimeInStage} />
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 w-full mb-6">
+      <StatCard label="Pipeline Value" value={`$${totalPipelineValue.toLocaleString()}`} accent />
+      <StatCard label="Contracted Value" value={`$${totalContractedValue.toLocaleString()}`} />
+      <StatCard label="Receivables" value={`$${currentReceivables.toLocaleString()}`} />
+      <StatCard label="Avg Deal Size" value={`$${averageDealSize.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
+      <StatCard label="Total Deals" value={deals.length.toString()} />
+      <StatCard label="Avg Time in Stage" value={averageTimeInStage} />
     </div>
   );
 };
 
 interface StatCardProps {
-  title: string;
-  value: string | number;
+  label: string;
+  value: string;
+  accent?: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value }) => {
-  return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-sm font-medium text-gray-500 mb-1">{title}</h3>
-      <p className="text-2xl font-semibold">{value}</p>
-    </div>
-  );
-};
+const StatCard: React.FC<StatCardProps> = ({ label, value, accent }) => (
+  <div className={`rounded-lg border p-4 ${accent ? 'bg-[#6C63FF] border-[#6C63FF] text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+    <p className={`text-xs font-medium mb-1 ${accent ? 'text-purple-100' : 'text-gray-500'}`}>{label}</p>
+    <p className="text-lg font-bold leading-tight">{value}</p>
+  </div>
+);
 
 export default StatsDashboard;

@@ -1,16 +1,25 @@
 import os
 import sys
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Ensure the parent of src/ is on sys.path so `from src.x import y` works
+# regardless of how gunicorn is invoked (--chdir, PYTHONPATH, or script mode).
+_src_parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _src_parent not in sys.path:
+    sys.path.insert(0, _src_parent)
 
-from flask import Flask, send_from_directory
-from flask_cors import CORS # Import CORS
+from flask import Flask, send_from_directory, jsonify
+from flask_cors import CORS
 from src.models import db
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT' # Change this in production!
-CORS(app, supports_credentials=True)  # TEMP: Allow all origins for testing
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+psycopg2://crm_user:Bumper77!@localhost:5432/crm_db"
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT') # Change this in production!
+
+CORS(app, supports_credentials=True, origins=[
+    "https://mentorlinkai.com",
+    "http://localhost:3000"  # (optional, for local dev)
+])
+
+# Database configuration using SQLite — use /tmp so it's always writable in any container
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/crm.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -33,6 +42,11 @@ app.register_blueprint(deal_bp, url_prefix='/api')
 app.register_blueprint(payment_schedule_bp, url_prefix='/api')
 app.register_blueprint(stage_history_bp, url_prefix='/api')
 app.register_blueprint(action_item_bp, url_prefix='/api')
+
+# Explicit health check endpoint — must be registered before the catch-all below
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
 
 # Serve static files (for potential basic frontend or testing)
 @app.route('/', defaults={'path': ''})
