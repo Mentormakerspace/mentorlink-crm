@@ -118,7 +118,7 @@ def get_user(user_id):
     }
     return jsonify({"user": user_data})
 
-@user_bp.route("/users/<int:user_id>", methods=["PUT"])
+@user_bp.route("/users/<int:user_id>", methods=["PUT", "PATCH"])
 def update_user(user_id):
     user = User.query.get_or_404(user_id)
     data = request.get_json()
