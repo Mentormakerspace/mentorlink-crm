@@ -24,7 +24,7 @@ export default function SignupPage() {
       await apiClient.createUser(formData);
       router.push('/?message=Account created successfully! Please sign in.');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create account');
+      setError(err.response?.data?.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ export default function SignupPage() {
           <p className="mt-2 text-center text-sm text-gray-600">
             Already have an account?{' '}
             <button
-              onClick={() => router.push('/auth')}
+              onClick={() => router.push('/')}
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               Sign in
