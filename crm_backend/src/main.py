@@ -15,7 +15,9 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT') 
 
 CORS(app, supports_credentials=True, origins=[
     "https://mentorlinkai.com",
-    "http://localhost:3000"  # (optional, for local dev)
+    "https://mentorlink-crm-acrw-git-main-scottys-projects-9465b3ac.vercel.app",
+    "https://mentorlink-crm-acrw.vercel.app",
+    "http://localhost:3000",
 ])
 
 # Database configuration using SQLite — use /tmp so it's always writable in any container

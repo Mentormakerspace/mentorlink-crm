@@ -116,5 +116,6 @@ export const fetchClients = apiClient.fetchClients;
 export const fetchUsers = apiClient.fetchUsers;
 export const createDeal = apiClient.createDeal;
 export const createPaymentSchedule = apiClient.createPaymentSchedule;
-
+export const createUser = (payload: { name: string; email: string; password: string; role: string }) => apiClient.createUser(payload);
+export { apiClient };
 export default apiClient;
